@@ -1,0 +1,269 @@
+datasource db {
+	provider = "postgresql"
+	url = env("POSTGRES_PRISMA_URL")
+	directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+generator client {
+	provider = "prisma-client-js"
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+model User {
+    // Default fields
+    id            String    @id @default(cuid())
+    name          String?
+    email         String?   @unique
+    emailVerified DateTime?
+    image         String?
+    accounts      Account[]
+    // Custom fields
+    username      String?   @unique
+    password      String?
+    bio           String?
+    role          Role      @default(USER)
+    userDetail    UserDetail?
+    following     follow[]  @relation("userFollowing")
+    followers     follow[]  @relation("userFollower")
+    build         build[]
+}
+
+model UserDetail {
+    id            String    @id @default(cuid())
+    userId        String    @unique
+    img           String?
+ 
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+    id                 String  @id @default(cuid())
+    userId             String
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String?  @db.Text
+    access_token       String?  @db.Text
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String?  @db.Text
+    session_state      String?
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
+
+model resetPasswordToken {
+    id        String   @id @default(cuid())
+    email     String
+    token     String   @unique
+    expires   DateTime
+
+  @@unique([email, token])
+}
+
+model follow {
+    id          String   @id @default(cuid())
+    follower    User @relation("userFollower",fields: [followerId], references: [id])
+    followerId  String
+    following   User @relation("userFollowing",fields: [followingId], references: [id])
+    followingId String
+    @@unique([followerId, followingId])
+}
+
+model news {
+    id      String   @id @default(cuid())
+    title   String
+    content String
+    image   String
+    date    DateTime
+    user_id String
+}
+
+model build {
+    id      String   @id @default(cuid())
+    buildName String
+    buildBio  String
+    image   String?
+    cpu_id  String
+    mobo_id String
+    ram_id  String
+    gpu_id  String
+    cpuCooler_id String
+    ssd_id String?
+    hdd_id String?
+    psu_id  String
+    case_id String
+    monitor_id String?
+    date    DateTime
+    user_id String
+
+    cpu cpu @relation(fields: [cpu_id], references: [id])
+    mobo mobo @relation(fields: [mobo_id], references: [id])
+    ram ram @relation(fields: [ram_id], references: [id])
+    gpu gpu @relation(fields: [gpu_id], references: [id])
+    cpuCooler cpuCooler @relation(fields: [cpuCooler_id], references: [id])
+    ssd ssd? @relation(fields: [ssd_id], references: [id])
+    hdd hdd? @relation(fields: [hdd_id], references: [id])
+    psu psu @relation(fields: [psu_id], references: [id])
+    caseComputer caseComputer @relation(fields: [case_id], references: [id])
+    monitor monitor? @relation(fields: [monitor_id], references: [id])
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model cpu {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    type    String
+    socket  String
+    coreThreads String
+    year    String
+    price   String
+    tdp    String
+    clock String
+    turbo String
+    description String
+
+    build build[]
+}
+
+model mobo {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    size    String
+    socket  String
+    ramslot String
+    description String
+    price   String
+
+    build build[]
+}
+
+model ram {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    size    String
+    type    String
+    kit     String
+    description String
+    price   String
+
+    build build[]
+}
+
+model caseComputer {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    size    String
+    isolation String
+    description String
+    price   String
+
+    build build[]
+}
+
+model cpuCooler {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    socket  String
+    description String
+    price   String
+
+    build build[]
+}
+
+model gpu {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    type    String
+    performance String
+    architecture String
+    year    String
+    series  String
+    vram    String
+    price   String
+    tdp  String
+    motherboardBus String
+    coreClock String
+    boostClock String
+    effectiveClock String
+    length String
+    coolingFans String
+    caseSlots String
+    frameSync String
+    description String
+
+    build build[]
+}
+
+model hdd {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    size    String
+    description String
+    price   String
+
+    build build[]
+}
+
+model ssd {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    size    String
+    type   String
+    description String
+    price   String
+
+    build build[]
+}
+
+model monitor {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    panelType String
+    resolution String
+    refreshRate String
+    size    String
+    freesync String
+    gsync   String
+    price   String
+    description String
+
+    build build[]
+}
+
+model psu {
+    id      String   @id @default(cuid())
+    typeProduct String
+    name    String
+    image   String
+    wattage String
+    description String
+    price   String
+
+    build build[]
+}
